@@ -1,0 +1,7 @@
+{
+  "ignored_files": [
+    "./build/*"
+  ],
+  "compiled_files": [],
+  "use_ts_exclude": true
+}
