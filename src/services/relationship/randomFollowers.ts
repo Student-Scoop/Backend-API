@@ -11,7 +11,7 @@ export default async function randomFollowersService(
 				userId: true,
 				name: true,
 				username: true,
-				imageUri: true
+				avatar: true
 			},
 			take: 15
 		});
@@ -27,7 +27,7 @@ export default async function randomFollowersService(
 			userId: string;
 			username: string;
 			isFollowed: boolean;
-			imageUri: string | null;
+			avatar: string | null;
 		}> = [];
 
 		if (loggedInUser) {
@@ -52,7 +52,7 @@ export default async function randomFollowersService(
 			userId: string;
 			username: string;
 			isFollowed: boolean;
-			imageUri: string | null;
+			avatar: string | null;
 		}> = [];
 
 		for (let i in uniqueNumbers) {

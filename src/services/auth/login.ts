@@ -23,7 +23,7 @@ export default async function loginService(
 				emailIsVerified: true,
 				followersCount: true,
 				followingCount: true,
-				imageUri: true
+				avatar: true
 			}
 		});
 
@@ -40,7 +40,7 @@ export default async function loginService(
 			email: user.email,
 			name: user.name,
 			username: user.username,
-			imageUri: user.imageUri,
+			imageUri: user.avatar,
 			verified: user.verified,
 			emailVerified: user.emailIsVerified,
 			followersCount: user.followersCount?.toString(),

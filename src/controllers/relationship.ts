@@ -1,5 +1,5 @@
-import httpStatus from 'http-status';
 import { Response } from 'express';
+import httpStatus from 'http-status';
 import { sendResponse } from '../util/response';
 import { RequestExtended } from '../types/request';
 

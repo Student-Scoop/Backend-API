@@ -31,7 +31,7 @@ export default async function signupService(
 			email: user.email,
 			username: user.username,
 			name: user.name,
-			imageUri: user.imageUri,
+			imageUri: user.avatar,
 			emailIsVerified: user.emailIsVerified,
 			verified: user.verified,
 			followersCount: user.followersCount?.toString(),

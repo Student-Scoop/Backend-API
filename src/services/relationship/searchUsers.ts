@@ -5,8 +5,6 @@ export default async function searchUserService(
 	userId: string,
 	query: string
 ): Promise<ServiceToController> {
-	console.log('🚀 ~ User Search ~ q:', query);
-
 	try {
 		const people = await prisma.user.findMany({
 			where: {
@@ -19,7 +17,7 @@ export default async function searchUserService(
 				name: true,
 				username: true,
 				userId: true,
-				imageUri: true
+				avatar: true
 			},
 			orderBy: { userId: 'desc' },
 			take: 15
@@ -34,7 +32,7 @@ export default async function searchUserService(
 			userId: string;
 			username: string;
 			isFollowed: boolean;
-			imageUri: string | null;
+			avatar: string | null;
 		}> = [];
 
 		if (loggedInUser) {

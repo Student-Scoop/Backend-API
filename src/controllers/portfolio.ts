@@ -1,4 +1,6 @@
 import { Response } from 'express';
+import httpStatus from 'http-status';
+import { sendResponse } from '../util/response';
 import { RequestExtended } from '../types/request';
 
 import {
@@ -24,17 +26,33 @@ export default class PortfolioController {
 
 		switch (event) {
 			case 'SUCCESS_CREATE_PORTFOLIO':
-				return res.status(200).json({ message: 'Success', data });
+				return sendResponse(res, httpStatus.OK, 'Success', data);
 			case 'ERROR_CREATE_PORTFOLIO_PORTFOLIO_EXISTS':
-				return res.status(400).json({ message: 'Portfolio already exists' });
+				return sendResponse(
+					res,
+					httpStatus.BAD_REQUEST,
+					'Portfolio already exists.'
+				);
 			case 'ERROR_CREATE_PORTFOLIO_UPDATE_USER_PORTFOLIO_ID':
-				return res.status(500).json({ message: 'Unable to sync portfolio' });
+				return sendResponse(
+					res,
+					httpStatus.BAD_REQUEST,
+					'Unable to sync user portfolio.'
+				);
 			case 'ERROR_CREATE_PORTFOLIO_PORTFOLIO_NOT_FOUND':
-				return res.status(404).json({ message: 'Portfolio not found' });
+				return sendResponse(res, httpStatus.NOT_FOUND, 'Portfolio not found.');
 			case 'ERROR_CREATE_PORTFOLIO':
-				return res.status(500).json({ message: 'Internal server error' });
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Could not create portfolio.'
+				);
 			default:
-				return res.status(500).json({ message: 'Unexpected server error' });
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Unexpected server error.'
+				);
 		}
 	}
 
@@ -65,15 +83,23 @@ export default class PortfolioController {
 
 		switch (event) {
 			case 'SUCCESS_CHANGE_PORTFOLIO':
-				return res.status(200).json({ message: 'Success', data });
+				return sendResponse(res, httpStatus.OK, 'Success', data);
 			case 'ERROR_CHANGE_PORTFOLIO_PORTFOLIO_NOT_FOUND':
-				return res.status(404).json({ message: 'Portfolio not found' });
+				return sendResponse(res, httpStatus.NOT_FOUND, 'Portfolio not found.');
 			case 'ERROR_CHANGE_PORTFOLIO_USER_NOT_FOUND':
-				return res.status(404).json({ message: 'User not found' });
+				return sendResponse(res, httpStatus.NOT_FOUND, 'User not found.');
 			case 'ERROR_CHANGE_PORTFOLIO':
-				return res.status(500).json({ message: 'Internal server error' });
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Internal server error.'
+				);
 			default:
-				return res.status(500).json({ message: 'Unexpected server error' });
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Unexpected server error.'
+				);
 		}
 	}
 
@@ -84,13 +110,21 @@ export default class PortfolioController {
 
 		switch (event) {
 			case 'SUCCESS_GET_PORTFOLIO':
-				return res.status(200).json({ message: 'Success', data });
+				return sendResponse(res, httpStatus.OK, 'Success', data);
 			case 'ERROR_GET_PORTFOLIO_USER_NOT_FOUND':
-				return res.status(404).json({ message: 'User not found' });
+				return sendResponse(res, httpStatus.NOT_FOUND, 'User not found.');
 			case 'ERROR_GET_PORTFOLIO':
-				return res.status(500).json({ message: 'Internal server error' });
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Internal server error.'
+				);
 			default:
-				return res.status(500).json({ message: 'Unexpected server error' });
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Unexpected server error.'
+				);
 		}
 	}
 }

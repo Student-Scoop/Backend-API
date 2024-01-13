@@ -1,17 +1,16 @@
 import http from 'http';
 import cors from 'cors';
-import path from 'path';
 import bodyParser from 'body-parser';
 import session from 'express-session';
 import config from './config/env';
-import express, { Express, Response } from 'express';
+import express, { Express } from 'express';
+import errorHandler from './middleware/errorHandler';
 
 import { createClient } from 'redis';
 import RedisStore from 'connect-redis';
 
 import router from './router/router';
 import { secureHeaders } from './middleware/security/headers';
-import { RequestExtended } from './types/request';
 
 const app: Express = express();
 
@@ -51,6 +50,8 @@ app.use(secureHeaders);
 app.use(sessionMiddleWare);
 app.use(bodyParser.json());
 
-app.use('/api', router);
+app.use(router);
+
+app.use(errorHandler);
 
 export default server;

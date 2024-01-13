@@ -11,7 +11,7 @@ export default async function getNotificationsService(
 				notifUser: {
 					select: {
 						username: true,
-						imageUri: true,
+						avatar: true,
 						userId: true,
 						name: true,
 						verified: true

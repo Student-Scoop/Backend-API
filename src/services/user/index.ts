@@ -4,7 +4,7 @@ import getFollowCountsService from './getFollowCounts';
 import getNotificationsService from './getNotifications';
 import getUserService from './getUser';
 import saveNotificationIdService from './saveNotificationId';
-import updatePhotoService from './updatePhoto';
+import updateAvatarService from './updateAvatar';
 
 export {
 	changeDataService,
@@ -13,5 +13,5 @@ export {
 	getNotificationsService,
 	getUserService,
 	saveNotificationIdService,
-	updatePhotoService
+	updateAvatarService
 };

@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import httpStatus from 'http-status';
 import { sendResponse } from '../util/response';
 import { RequestExtended } from '../types/request';
 
@@ -9,7 +10,7 @@ import {
 	getNotificationsService,
 	getUserService,
 	saveNotificationIdService,
-	updatePhotoService
+	updateAvatarService
 } from '../services/user';
 
 export default class UserController {
@@ -27,16 +28,35 @@ export default class UserController {
 
 		switch (event) {
 			case 'SUCCESS_CHANGE_DATA':
-				return sendResponse(res, 200, 'Success', data);
+				return sendResponse(res, httpStatus.OK, 'Success', data);
 			case 'ERROR_CHANGE_DATA_USER_NOT_FOUND':
-				return sendResponse(res, 404, 'User not found');
+				return sendResponse(res, httpStatus.NOT_FOUND, 'User not found');
 			case 'ERROR_CHANGE_DATA_INVALID_PASSWORD':
-				return sendResponse(res, 400, 'Invalid password');
+				return sendResponse(res, httpStatus.BAD_REQUEST, 'Invalid password');
 			case 'ERROR_CHANGE_DATA':
-				return sendResponse(res, 500, 'Internal server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Internal server error'
+				);
 			default:
-				return sendResponse(res, 500, 'Unexpected server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Unexpected server error'
+				);
 		}
+	}
+
+	static async updateAvatar(req: RequestExtended, res: Response) {
+		if (!req.file)
+			return sendResponse(res, httpStatus.BAD_REQUEST, 'No file was uploaded.');
+
+		const { userId } = req.user;
+
+		const { event, data } = await updateAvatarService(userId, req.file);
+
+		console.log(event, data);
 	}
 
 	static async deleteAccount(req: RequestExtended, res: Response) {
@@ -47,15 +67,23 @@ export default class UserController {
 
 		switch (event) {
 			case 'SUCCESS_DELETE_ACCOUNT':
-				return sendResponse(res, 200, 'Success', data);
+				return sendResponse(res, httpStatus.OK, 'Success', data);
 			case 'ERROR_DELETE_ACCOUNT_USER_NOT_FOUND':
-				return sendResponse(res, 404, 'User not found');
+				return sendResponse(res, httpStatus.NOT_FOUND, 'User not found');
 			case 'ERROR_DELETE_ACCOUNT_INVALID_PASSWORD':
-				return sendResponse(res, 400, 'Invalid password');
+				return sendResponse(res, httpStatus.BAD_REQUEST, 'Invalid password');
 			case 'ERROR_DELETE_ACCOUNT':
-				return sendResponse(res, 500, 'Internal server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Internal server error'
+				);
 			default:
-				return sendResponse(res, 500, 'Unexpected server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Unexpected server error'
+				);
 		}
 	}
 
@@ -66,13 +94,21 @@ export default class UserController {
 
 		switch (event) {
 			case 'SUCCESS_GET_FOLLOWS':
-				return sendResponse(res, 200, 'Success', data);
+				return sendResponse(res, httpStatus.OK, 'Success', data);
 			case 'ERROR_GET_FOLLOWS_USER_NOT_FOUND':
-				return sendResponse(res, 404, 'User not found');
+				return sendResponse(res, httpStatus.NOT_FOUND, 'User not found');
 			case 'ERROR_GET_FOLLOWS':
-				return sendResponse(res, 500, 'Internal server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Internal server error'
+				);
 			default:
-				return sendResponse(res, 500, 'Unexpected server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Unexpected server error'
+				);
 		}
 	}
 
@@ -83,11 +119,19 @@ export default class UserController {
 
 		switch (event) {
 			case 'SUCCESS_GET_NOTIFICATIONS':
-				return sendResponse(res, 200, 'Success', data);
+				return sendResponse(res, httpStatus.OK, 'Success', data);
 			case 'ERROR_GET_NOTIFICATIONS':
-				return sendResponse(res, 500, 'Internal server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Internal server error'
+				);
 			default:
-				return sendResponse(res, 500, 'Unexpected server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Unexpected server error'
+				);
 		}
 	}
 
@@ -98,13 +142,21 @@ export default class UserController {
 
 		switch (event) {
 			case 'SUCCESS_GET_USER':
-				return sendResponse(res, 200, 'Success', data);
+				return sendResponse(res, httpStatus.OK, 'Success', data);
 			case 'ERROR_GET_USER_USER_NOT_FOUND':
-				return sendResponse(res, 404, 'User not found');
+				return sendResponse(res, httpStatus.NOT_FOUND, 'User not found');
 			case 'ERROR_GET_USER':
-				return sendResponse(res, 500, 'Internal server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Internal server error'
+				);
 			default:
-				return sendResponse(res, 500, 'Unexpected server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Unexpected server error'
+				);
 		}
 	}
 
@@ -119,29 +171,19 @@ export default class UserController {
 
 		switch (event) {
 			case 'SUCCESS_SAVE_NOTIFICATION_ID':
-				return sendResponse(res, 200, 'Success', data);
+				return sendResponse(res, httpStatus.OK, 'Success', data);
 			case 'ERROR_SAVE_NOTIFICATION_ID':
-				return sendResponse(res, 500, 'Internal server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Internal server error'
+				);
 			default:
-				return sendResponse(res, 500, 'Unexpected server error');
-		}
-	}
-
-	static async updatePhoto(req: RequestExtended, res: Response) {
-		const { userId } = req.user;
-		const { photo } = req.body;
-
-		const { event, data } = await updatePhotoService(userId, photo);
-
-		switch (event) {
-			case 'SUCCESS_UPDATE_PHOTO':
-				return sendResponse(res, 200, 'Success', data);
-			case 'ERROR_UPDATE_PHOTO_COULD_NOT_CREATE_ENTRY':
-				return sendResponse(res, 500, 'Could not create entry');
-			case 'ERROR_UPDATE_PHOTO':
-				return sendResponse(res, 500, 'Internal server error');
-			default:
-				return sendResponse(res, 500, 'Unexpected server error');
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Unexpected server error'
+				);
 		}
 	}
 }

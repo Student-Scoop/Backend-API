@@ -18,7 +18,7 @@ model user {
     verified              Boolean        @default(false)
     emailIsVerified       Boolean        @default(false)
     prefs                 Json?
-    imageUri              String?
+    avatar                String?
     post                  post[]         @relation("user")
     rePost                post[]         @relation("RepostUser", fields: [rePostIDs], references: [postId])
     rePostIDs             String[]       @db.ObjectId

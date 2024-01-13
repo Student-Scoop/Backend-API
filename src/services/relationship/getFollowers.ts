@@ -16,7 +16,7 @@ export default async function getFollowersService(
 						userId: true,
 						name: true,
 						username: true,
-						imageUri: true,
+						avatar: true,
 						verified: true
 					},
 					take: Number(take),

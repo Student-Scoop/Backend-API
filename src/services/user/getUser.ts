@@ -18,7 +18,7 @@ export default async function getUserService(
 				followersCount: true,
 				followingCount: true,
 				following: true,
-				imageUri: true,
+				avatar: true,
 				portfolio: true
 			}
 		});
@@ -29,7 +29,7 @@ export default async function getUserService(
 			userId: user.userId,
 			email: user.email,
 			username: user.username,
-			imageUri: user.imageUri,
+			imageUri: user.avatar,
 			emailIsVerified: user.emailIsVerified,
 			verified: user.verified,
 			name: user.name,
