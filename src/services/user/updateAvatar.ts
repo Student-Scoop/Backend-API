@@ -4,20 +4,31 @@ import { ServiceToController, serviceToController } from '../../util/response';
 
 export default async function updateAvatarService(
 	userId: string,
-	image: any
+	image: any | null
 ): Promise<ServiceToController> {
 	try {
-		const profileImage = await uploadStream('profile_pictures', image);
+		if (!image) {
+			const updatePhoto = await prisma.user.update({
+				where: { userId: userId },
+				data: { avatar: '' }
+			});
 
-		console.log(profileImage['secure_url']);
+			if (!updatePhoto) return serviceToController('ERROR_UPDATE_AVATAR');
+
+			return serviceToController('SUCCESS_UPDATE_AVATAR', { avatarURL: '' });
+		}
+
+		const profileImage = await uploadStream('profile_pictures', image);
 
 		const updatePhoto = await prisma.user.update({
 			where: { userId: userId },
 			data: { avatar: profileImage['secure_url'] }
 		});
 
+		if (!updatePhoto) return serviceToController('ERROR_UPDATE_AVATAR');
+
 		return serviceToController('SUCCESS_UPDATE_AVATAR', {
-			avatarURL: profileImage['secure_url']
+			avatar: profileImage['secure_url']
 		});
 	} catch (e: any) {
 		return serviceToController('ERROR_UPDATE_AVATAR', e);

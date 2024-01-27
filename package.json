@@ -7,11 +7,13 @@
 	"private": true,
 	"scripts": {
 		"dev": "nodemon",
-		"start:prod": "npm run prisma:generate && node ./build/server.js",
 		"build": "rimraf ./build && tsc",
+		"start": "ts-node --transpile-only ./src/server.ts",
+		"start:prod": "npm run prisma:generate && node ./build/server.js",
 		"prisma:generate": "npx prisma generate",
 		"prisma:push": "npx prisma db push",
-		"start": "ts-node --transpile-only ./src/server.ts"
+		"prettier": "prettier --check \"src/**/*.{ts,tsx,js,jsx}\"",
+		"prettier:fix": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\""
 	},
 	"dependencies": {
 		"@prisma/client": "^5.8.0",
@@ -56,6 +58,7 @@
 		"@types/validator": "^13.11.7",
 		"cross-env": "^7.0.3",
 		"nodemon": "^3.0.2",
+		"prettier": "^3.2.4",
 		"prisma": "^5.8.0",
 		"typescript": "latest"
 	}

@@ -23,15 +23,22 @@ export default async function loginService(
 				emailIsVerified: true,
 				followersCount: true,
 				followingCount: true,
-				avatar: true
+				avatar: true,
+				portfolio: true,
+				createdAt: true,
+				updatedAt: true
 			}
 		});
 
 		if (!user) return serviceToController('ERROR_LOGIN_INVALID_USERNAME');
 
-		if (!(await bcrypt.compare(password, user.password))) {
+		const comparePassword = await bcrypt.compare(
+			password,
+			user.password.trim()
+		);
+
+		if (!comparePassword)
 			return serviceToController('ERROR_LOGIN_INVALID_PASSWORD');
-		}
 
 		const token = generateToken(user.userId, config.SECRET_KEY);
 
@@ -40,11 +47,14 @@ export default async function loginService(
 			email: user.email,
 			name: user.name,
 			username: user.username,
-			imageUri: user.avatar,
+			avatar: user.avatar,
 			verified: user.verified,
 			emailVerified: user.emailIsVerified,
 			followersCount: user.followersCount?.toString(),
 			followingCount: user.followingCount?.toString(),
+			portfolio: user.portfolio,
+			createdAt: user.createdAt,
+			updatedAt: user.updatedAt,
 			token: token
 		});
 	} catch (err: any) {

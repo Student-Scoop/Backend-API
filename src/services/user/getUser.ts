@@ -19,7 +19,9 @@ export default async function getUserService(
 				followingCount: true,
 				following: true,
 				avatar: true,
-				portfolio: true
+				portfolio: true,
+				createdAt: true,
+				updatedAt: true
 			}
 		});
 
@@ -29,13 +31,15 @@ export default async function getUserService(
 			userId: user.userId,
 			email: user.email,
 			username: user.username,
-			imageUri: user.avatar,
+			avatar: user.avatar,
 			emailIsVerified: user.emailIsVerified,
 			verified: user.verified,
 			name: user.name,
 			followersCount: user.followersCount?.toString(),
 			followingCount: user.followingCount?.toString(),
-			portfolio: user.portfolio
+			portfolio: user.portfolio,
+			createdAt: user.createdAt,
+			updatedAt: user.updatedAt
 		});
 	} catch (e: any) {
 		return serviceToController('ERROR_GET_USER', e);

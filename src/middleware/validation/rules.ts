@@ -1,4 +1,4 @@
-import { body, query } from 'express-validator';
+import { body, param, query } from 'express-validator';
 
 export const followerFollowingValidator = [
 	query('take').optional().isNumeric().withMessage('produce posts to take'),
@@ -40,6 +40,10 @@ export const registerValidation = [
 		)
 ];
 
+export const removeAvatarValidation = [
+	body('userId').exists().isString().withMessage('Invalid user ID.')
+];
+
 export const loginValidation = [
 	body('username')
 		.exists()
@@ -58,7 +62,7 @@ export const followValidator = [
 ];
 
 export const searchValidator = [
-	query('q').exists().isString().withMessage('query cannot be empty')
+	query('query').exists().isString().withMessage('query cannot be empty')
 ];
 
 export const notifIdValidator = [
@@ -66,19 +70,17 @@ export const notifIdValidator = [
 ];
 
 export const updateDataValidator = [
-	body('password').exists().isString().withMessage('invalid password'),
-	body(['userName', 'newPassword', 'name']).custom((value, { req }) => {
-		console.log(req.body);
-
-		if (req.body.userName && !req.body.name && !req.body.newPassword) {
+	body('password').optional().isString().withMessage('invalid password'),
+	body(['username', 'newPassword', 'name']).custom((value, { req }) => {
+		if (req.body.username && !req.body.name && !req.body.newPassword) {
 			return true;
-		} else if (!req.body.userName && req.body.name && !req.body.newPassword) {
+		} else if (!req.body.username && req.body.name && !req.body.newPassword) {
 			return true;
-		} else if (!req.body.userName && !req.body.name && req.body.newPassword) {
+		} else if (!req.body.username && !req.body.name && req.body.newPassword) {
 			return true;
 		}
 
-		throw new Error('Either userName | newPassword | name is needed');
+		throw new Error('Either username, newPassword, or name is required.');
 	})
 ];
 

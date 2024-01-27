@@ -79,8 +79,6 @@ export default class PortfolioController {
 			sports
 		);
 
-		console.log(event, data);
-
 		switch (event) {
 			case 'SUCCESS_CHANGE_PORTFOLIO':
 				return sendResponse(res, httpStatus.OK, 'Success', data);

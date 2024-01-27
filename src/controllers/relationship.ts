@@ -19,8 +19,6 @@ export default class RelationshipController {
 
 		const { event, data } = await followService(userId, followId);
 
-		console.log(event, data);
-
 		switch (event) {
 			case 'SUCCESS_FOLLOW':
 				return sendResponse(res, httpStatus.OK, '', data);
@@ -153,6 +151,9 @@ export default class RelationshipController {
 	static async searchUser(req: RequestExtended, res: Response) {
 		const { userId } = req.user;
 		const { query } = req.query;
+
+		if ((query as string).trim() === '')
+			return sendResponse(res, httpStatus.BAD_REQUEST, 'Invalid query');
 
 		const { event, data } = await searchUserService(userId, query as string);
 

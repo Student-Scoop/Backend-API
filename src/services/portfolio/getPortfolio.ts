@@ -25,7 +25,7 @@ export default async function getPortfolioService(
 
 		if (!user) return serviceToController('ERROR_GET_USER_USER_NOT_FOUND');
 
-		return serviceToController('SUCCESS_GET_USER', {
+		return serviceToController('SUCCESS_GET_PORTFOLIO', {
 			userId: user.userId,
 			email: user.email,
 			username: user.username,

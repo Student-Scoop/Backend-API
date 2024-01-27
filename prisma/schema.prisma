@@ -37,8 +37,8 @@ model user {
     message               message[]
     notification          notification[]
     notificationsReceived notification[] @relation("NotificationUser")
-    portfolio             portfolio      @relation(fields: [portfolioId], references: [portfolioId])
-    portfolioId           String         @db.ObjectId
+    portfolio             portfolio?     @relation(fields: [portfolioId], references: [portfolioId])
+    portfolioId           String?        @db.ObjectId
 }
 
 model portfolio {

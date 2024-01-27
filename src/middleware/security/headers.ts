@@ -1,4 +1,6 @@
-export function secureHeaders(req, res, next) {
+import { Request, Response, NextFunction } from 'express';
+
+export function secureHeaders(_: Request, res: Response, next: NextFunction) {
 	res.header(
 		'Strict-Transport-Security',
 		'max-age=31536000; includeSubDomains'

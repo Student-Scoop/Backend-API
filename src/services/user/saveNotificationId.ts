@@ -11,8 +11,6 @@ export default async function saveNotificationIdService(
 			data: { notificationId: notificationId }
 		});
 
-		console.log('🚀 ~ file: ~ notificationId:', notificationId);
-
 		if (!saveNotification)
 			return serviceToController('ERROR_SAVE_NOTIFICATION_ID');
 

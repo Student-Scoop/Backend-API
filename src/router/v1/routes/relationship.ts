@@ -4,7 +4,8 @@ import RelationshipController from '../../../controllers/relationship';
 
 import {
 	followerFollowingValidator,
-	followValidator
+	followValidator,
+	searchValidator
 } from '../../../middleware/validation/rules';
 
 const relationshipRouter = Router();
@@ -33,6 +34,12 @@ relationshipRouter.get(
 );
 
 relationshipRouter.get('/random', RelationshipController.randomFollowers);
-relationshipRouter.get('/search', RelationshipController.searchUser);
+
+relationshipRouter.get(
+	'/search',
+	searchValidator,
+	validate,
+	RelationshipController.searchUser
+);
 
 export default relationshipRouter;

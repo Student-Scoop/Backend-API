@@ -35,7 +35,9 @@ export default async function signupService(
 			emailIsVerified: user.emailIsVerified,
 			verified: user.verified,
 			followersCount: user.followersCount?.toString(),
-			followingCount: user.followingCount?.toString()
+			followingCount: user.followingCount?.toString(),
+			createdAt: user.createdAt,
+			updatedAt: user.updatedAt
 		});
 	} catch (e: any) {
 		return serviceToController('ERROR_SIGNUP', e);

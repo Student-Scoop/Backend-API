@@ -16,14 +16,14 @@ import {
 export default class UserController {
 	static async changeData(req: RequestExtended, res: Response) {
 		const { userId } = req.user;
-		const { password, userName, newPassword, name } = req.body;
+		const { password, username, newPassword, name } = req.body;
 
 		const { event, data } = await changeDataService(
 			userId,
+			name,
+			username,
 			password,
-			userName,
-			newPassword,
-			name
+			newPassword
 		);
 
 		switch (event) {
@@ -56,7 +56,45 @@ export default class UserController {
 
 		const { event, data } = await updateAvatarService(userId, req.file);
 
-		console.log(event, data);
+		switch (event) {
+			case 'SUCCESS_UPDATE_AVATAR':
+				return sendResponse(res, httpStatus.OK, 'Success', data);
+			case 'ERROR_UPDATE_AVATAR':
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Internal server error'
+				);
+			default:
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Unexpected server error'
+				);
+		}
+	}
+
+	static async removeAvatar(req: RequestExtended, res: Response) {
+		const { userId } = req.user;
+
+		const { event, data } = await updateAvatarService(userId, null);
+
+		switch (event) {
+			case 'SUCCESS_UPDATE_AVATAR':
+				return sendResponse(res, httpStatus.OK, 'Success', data);
+			case 'ERROR_UPDATE_AVATAR':
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Internal server error'
+				);
+			default:
+				return sendResponse(
+					res,
+					httpStatus.INTERNAL_SERVER_ERROR,
+					'Unexpected server error'
+				);
+		}
 	}
 
 	static async deleteAccount(req: RequestExtended, res: Response) {

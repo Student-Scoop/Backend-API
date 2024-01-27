@@ -17,7 +17,11 @@ export default async function changeDataService(
 
 		if (!user) return serviceToController('ERROR_CHANGE_DATA_USER_NOT_FOUND');
 
-		if (!(await bcrypt.compare(password, user.password)))
+		if (
+			password &&
+			password.length > 0 &&
+			!(await bcrypt.compare(password, user.password))
+		)
 			return serviceToController('ERROR_CHANGE_DATA_INVALID_PASSWORD');
 
 		const updatedUser = await prisma.user.update({
