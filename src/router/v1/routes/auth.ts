@@ -4,20 +4,21 @@ import { validate } from '../../../middleware/validation/validate';
 
 import {
 	loginValidation,
+	loginWithGoogleValidation,
 	registerValidation
 } from '../../../middleware/validation/rules';
 
 const authRouter = Router();
 
 authRouter.post('/login', loginValidation, validate, AuthController.login);
-
 authRouter.post(
-	'/register',
-	registerValidation,
+	'/google',
+	loginWithGoogleValidation,
 	validate,
-	AuthController.signup
+	AuthController.loginGoogle
 );
 
+authRouter.post('/signup', registerValidation, validate, AuthController.signup);
 authRouter.post('/logout', AuthController.logout);
 
 export default authRouter;

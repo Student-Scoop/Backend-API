@@ -1,4 +1,5 @@
 import loginService from './login';
 import signupService from './signup';
+import googleLoginService from './google';
 
-export { loginService, signupService };
+export { loginService, googleLoginService, signupService };

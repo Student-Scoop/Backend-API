@@ -15,9 +15,9 @@ export default async function getPortfolioService(
 				verified: true,
 				emailIsVerified: true,
 				followers: true,
-				followersCount: true,
-				followingCount: true,
 				following: true,
+				followersIDs: true,
+				followingIDs: true,
 				avatar: true,
 				portfolio: true
 			}
@@ -33,8 +33,8 @@ export default async function getPortfolioService(
 			emailIsVerified: user.emailIsVerified,
 			verified: user.verified,
 			name: user.name,
-			followersCount: user.followersCount?.toString(),
-			followingCount: user.followingCount?.toString(),
+			followersCount: user.followersIDs?.length.toString(),
+			followingCount: user.followingIDs?.length.toString(),
 			portfolio: user.portfolio
 		});
 	} catch (e: any) {

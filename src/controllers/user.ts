@@ -5,11 +5,8 @@ import { RequestExtended } from '../types/request';
 
 import {
 	changeDataService,
-	deleteAccountService,
 	getFollowCountsService,
-	getNotificationsService,
 	getUserService,
-	saveNotificationIdService,
 	updateAvatarService
 } from '../services/user';
 
@@ -97,34 +94,6 @@ export default class UserController {
 		}
 	}
 
-	static async deleteAccount(req: RequestExtended, res: Response) {
-		const { userId } = req.user;
-		const { password } = req.body;
-
-		const { event, data } = await deleteAccountService(userId, password);
-
-		switch (event) {
-			case 'SUCCESS_DELETE_ACCOUNT':
-				return sendResponse(res, httpStatus.OK, 'Success', data);
-			case 'ERROR_DELETE_ACCOUNT_USER_NOT_FOUND':
-				return sendResponse(res, httpStatus.NOT_FOUND, 'User not found');
-			case 'ERROR_DELETE_ACCOUNT_INVALID_PASSWORD':
-				return sendResponse(res, httpStatus.BAD_REQUEST, 'Invalid password');
-			case 'ERROR_DELETE_ACCOUNT':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error'
-				);
-			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error'
-				);
-		}
-	}
-
 	static async getFollowCounts(req: RequestExtended, res: Response) {
 		const { userId } = req.user;
 
@@ -150,33 +119,17 @@ export default class UserController {
 		}
 	}
 
-	static async getNotifications(req: RequestExtended, res: Response) {
-		const { userId } = req.user;
-
-		const { event, data } = await getNotificationsService(userId);
-
-		switch (event) {
-			case 'SUCCESS_GET_NOTIFICATIONS':
-				return sendResponse(res, httpStatus.OK, 'Success', data);
-			case 'ERROR_GET_NOTIFICATIONS':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error'
-				);
-			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error'
-				);
-		}
-	}
-
 	static async getUser(req: RequestExtended, res: Response) {
 		const { userId } = req.user;
 
-		const { event, data } = await getUserService(userId);
+		let getUserId: string;
+		if (req.params.id && req.params.id.toLowerCase() === '@me') {
+			getUserId = userId;
+		} else {
+			getUserId = req.params.id;
+		}
+
+		const { event, data } = await getUserService(getUserId);
 
 		switch (event) {
 			case 'SUCCESS_GET_USER':
@@ -184,33 +137,6 @@ export default class UserController {
 			case 'ERROR_GET_USER_USER_NOT_FOUND':
 				return sendResponse(res, httpStatus.NOT_FOUND, 'User not found');
 			case 'ERROR_GET_USER':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error'
-				);
-			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error'
-				);
-		}
-	}
-
-	static async saveNotificationId(req: RequestExtended, res: Response) {
-		const { userId } = req.user;
-		const { notificationId } = req.body;
-
-		const { event, data } = await saveNotificationIdService(
-			userId,
-			notificationId
-		);
-
-		switch (event) {
-			case 'SUCCESS_SAVE_NOTIFICATION_ID':
-				return sendResponse(res, httpStatus.OK, 'Success', data);
-			case 'ERROR_SAVE_NOTIFICATION_ID':
 				return sendResponse(
 					res,
 					httpStatus.INTERNAL_SERVER_ERROR,

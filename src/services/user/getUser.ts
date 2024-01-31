@@ -14,14 +14,12 @@ export default async function getUserService(
 				email: true,
 				verified: true,
 				emailIsVerified: true,
-				followers: true,
-				followersCount: true,
-				followingCount: true,
-				following: true,
 				avatar: true,
 				portfolio: true,
 				createdAt: true,
-				updatedAt: true
+				updatedAt: true,
+				followersIDs: true,
+				followingIDs: true
 			}
 		});
 
@@ -35,8 +33,8 @@ export default async function getUserService(
 			emailIsVerified: user.emailIsVerified,
 			verified: user.verified,
 			name: user.name,
-			followersCount: user.followersCount?.toString(),
-			followingCount: user.followingCount?.toString(),
+			followersCount: user.followersIDs?.length.toString(),
+			followingCount: user.followingIDs?.length.toString(),
 			portfolio: user.portfolio,
 			createdAt: user.createdAt,
 			updatedAt: user.updatedAt

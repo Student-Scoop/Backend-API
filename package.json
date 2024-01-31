@@ -12,8 +12,11 @@
 		"start:prod": "npm run prisma:generate && node ./build/server.js",
 		"prisma:generate": "npx prisma generate",
 		"prisma:push": "npx prisma db push",
+		"prisma:update": "npm run prisma:generate && npm run prisma:push",
 		"prettier": "prettier --check \"src/**/*.{ts,tsx,js,jsx}\"",
-		"prettier:fix": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\""
+		"prettier:fix": "prettier --write \"src/**/*.{ts,tsx,js,jsx}\"",
+		"heroku:push": "heroku container:push web -a student-scoop",
+		"heroku:release": "heroku container:release web -a student-scoop"
 	},
 	"dependencies": {
 		"@prisma/client": "^5.8.0",
@@ -30,6 +33,7 @@
 		"express-rate-limit": "^7.1.5",
 		"express-session": "^1.17.3",
 		"express-validator": "^7.0.1",
+		"google-auth-library": "^9.5.0",
 		"http-status": "^1.7.3",
 		"image-size": "^1.0.2",
 		"ioredis": "^5.3.2",

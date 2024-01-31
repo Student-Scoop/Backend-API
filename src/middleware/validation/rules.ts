@@ -1,4 +1,4 @@
-import { body, param, query } from 'express-validator';
+import { body, query } from 'express-validator';
 
 export const followerFollowingValidator = [
 	query('take').optional().isNumeric().withMessage('produce posts to take'),
@@ -57,6 +57,16 @@ export const loginValidation = [
 		.withMessage('Password must be between 2 and 15 characters long.')
 ];
 
+export const loginWithGoogleValidation = [
+	body('token')
+		.notEmpty()
+		.withMessage('No token is provided.')
+		.exists()
+		.withMessage('Token is required.')
+		.isString()
+		.withMessage('Invalid Google token.')
+];
+
 export const followValidator = [
 	body('followId').isString().isMongoId().withMessage('Not valid Id')
 ];
@@ -65,37 +75,15 @@ export const searchValidator = [
 	query('query').exists().isString().withMessage('query cannot be empty')
 ];
 
-export const notifIdValidator = [
-	query('notificationId').exists().withMessage('Not valid Id')
-];
-
 export const updateDataValidator = [
 	body('password').optional().isString().withMessage('invalid password'),
 	body(['username', 'newPassword', 'name']).custom((value, { req }) => {
-		if (req.body.username && !req.body.name && !req.body.newPassword) {
-			return true;
-		} else if (!req.body.username && req.body.name && !req.body.newPassword) {
-			return true;
-		} else if (!req.body.username && !req.body.name && req.body.newPassword) {
-			return true;
-		}
+		const { username, newPassword, name } = req.body;
+
+		if (username || newPassword || name) return true;
 
 		throw new Error('Either username, newPassword, or name is required.');
 	})
-];
-
-export const createPortfolioValidator = [
-	body('schoolName').exists().isString().withMessage('invalid school name'),
-	body('schoolLocation')
-		.exists()
-		.isString()
-		.withMessage('invalid school location'),
-	body('graduationYear')
-		.exists()
-		.isString()
-		.withMessage('invalid graduation year'),
-	body('degree').exists().isString().withMessage('invalid degree'),
-	body('major').exists().isString().withMessage('invalid major')
 ];
 
 const changePortfolioKeys = [
@@ -123,8 +111,4 @@ export const changePortfolioValidator = [
 
 		return true;
 	})
-];
-
-export const deleteAccountValidator = [
-	body('password').exists().isString().withMessage('invalid password')
 ];

@@ -19,12 +19,35 @@ export default async function signupService(
 				name: name,
 				email: email,
 				username: formattedUsername,
-				password: await bcrypt.hash(password, 10),
-				portfolio: {}
+				password: await bcrypt.hash(password, 10)
 			}
 		});
 
-		if (!user) return serviceToController('ERROR_SIGNUP_USER_NOT_CREATED');
+		const userPortfolio = await prisma.portfolio.create({
+			data: {
+				userId: user.userId,
+				schoolName: '',
+				schoolLocation: '',
+				graduationYear: '',
+				degree: '',
+				major: '',
+				gpa: 0,
+				gradeLevel: 0,
+				sports: '',
+				clubs: ''
+			}
+		});
+
+		if (!user || !userPortfolio)
+			return serviceToController('ERROR_SIGNUP_USER_NOT_CREATED');
+
+		const syncPortfolio = await prisma.user.update({
+			where: { userId: user.userId },
+			data: { portfolioId: userPortfolio.portfolioId }
+		});
+
+		if (!syncPortfolio)
+			return serviceToController('ERROR_SIGNUP_PORTFOLIO_NOT_SYNCED');
 
 		return serviceToController('SUCCESS_SIGNUP', {
 			userId: user.userId,
@@ -34,8 +57,8 @@ export default async function signupService(
 			imageUri: user.avatar,
 			emailIsVerified: user.emailIsVerified,
 			verified: user.verified,
-			followersCount: user.followersCount?.toString(),
-			followingCount: user.followingCount?.toString(),
+			followersCount: user.followersIDs?.length.toString(),
+			followingCount: user.followingIDs?.length.toString(),
 			createdAt: user.createdAt,
 			updatedAt: user.updatedAt
 		});

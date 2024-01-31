@@ -7,15 +7,15 @@ export default async function getFollowCountsService(
 	try {
 		const user = await prisma.user.findUnique({
 			where: { userId: userId },
-			select: { followersCount: true, followingCount: true }
+			select: { followersIDs: true, followingIDs: true }
 		});
 
 		if (!user) return serviceToController('ERROR_GET_FOLLOWS_USER_NOT_FOUND');
 
 		if (user)
 			return serviceToController('SUCCESS_GET_FOLLOWS', {
-				following: user.followingCount?.toString(),
-				followers: user.followersCount?.toString()
+				following: user.followingIDs?.length.toString(),
+				followers: user.followersIDs?.length.toString()
 			});
 	} catch (e: any) {
 		return serviceToController('ERROR_GET_FOLLOWS', e);

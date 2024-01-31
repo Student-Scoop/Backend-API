@@ -9,36 +9,22 @@ datasource db {
 }
 
 model user {
-    userId                String         @id @default(auto()) @map("_id") @db.ObjectId
-    email                 String         @unique
-    name                  String
-    notificationId        String?
-    username              String         @unique
-    password              String
-    verified              Boolean        @default(false)
-    emailIsVerified       Boolean        @default(false)
-    prefs                 Json?
-    avatar                String?
-    post                  post[]         @relation("user")
-    rePost                post[]         @relation("RepostUser", fields: [rePostIDs], references: [postId])
-    rePostIDs             String[]       @db.ObjectId
-    followingCount        Int?           @default(0)
-    followersCount        Int?           @default(0)
-    createdAt             DateTime       @default(now())
-    updatedAt             DateTime       @updatedAt
-    followers             user[]         @relation("UserFollows", fields: [followersIDs], references: [userId])
-    followersIDs          String[]       @db.ObjectId
-    following             user[]         @relation("UserFollows", fields: [followingIDs], references: [userId])
-    followingIDs          String[]       @db.ObjectId
-    comments              comment[]
-    chat                  chat[]         @relation(fields: [chatIDs], references: [chatId])
-    chatIDs               String[]       @db.ObjectId
-    like                  like[]
-    message               message[]
-    notification          notification[]
-    notificationsReceived notification[] @relation("NotificationUser")
-    portfolio             portfolio?     @relation(fields: [portfolioId], references: [portfolioId])
-    portfolioId           String?        @db.ObjectId
+    userId          String     @id @default(auto()) @map("_id") @db.ObjectId
+    email           String     @unique
+    name            String
+    username        String     @unique
+    password        String
+    verified        Boolean    @default(false)
+    emailIsVerified Boolean    @default(false)
+    avatar          String?
+    createdAt       DateTime   @default(now())
+    updatedAt       DateTime   @updatedAt
+    followers       user[]     @relation("UserFollows", fields: [followersIDs], references: [userId])
+    followersIDs    String[]   @db.ObjectId
+    following       user[]     @relation("UserFollows", fields: [followingIDs], references: [userId])
+    followingIDs    String[]   @db.ObjectId
+    portfolio       portfolio? @relation(fields: [portfolioId], references: [portfolioId])
+    portfolioId     String?    @db.ObjectId
 }
 
 model portfolio {
@@ -50,134 +36,10 @@ model portfolio {
     graduationYear String
     degree         String
     major          String
-    sports         sport[]
-    clubs          clubs[]
-    sportIds       String[] @db.ObjectId
+    gpa            Float
+    gradeLevel     Int
+    sports         String
+    clubs          String
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
-}
-
-model sport {
-    sportId     String    @id @default(auto()) @map("_id") @db.ObjectId
-    sportName   String
-    portfolio   portfolio @relation(fields: [portfolioId], references: [portfolioId])
-    portfolioId String    @db.ObjectId
-}
-
-model clubs {
-    clubId      String    @id @default(auto()) @map("_id") @db.ObjectId
-    clubName    String
-    portfolio   portfolio @relation(fields: [portfolioId], references: [portfolioId])
-    portfolioId String    @db.ObjectId
-}
-
-model post {
-    postId         String    @id @default(auto()) @map("_id") @db.ObjectId
-    user           user?     @relation("user", fields: [userId], references: [userId])
-    userId         String?   @db.ObjectId
-    repostUser     user[]    @relation("RepostUser", fields: [repostUserId], references: [userId])
-    repostUserId   String[]  @db.ObjectId
-    audioUri       String?
-    audioTitle     String?
-    videoUri       String?
-    videoThumbnail String?
-    comments       comment[]
-    videoTitle     String?
-    photoUri       String[]
-    postText       String?
-    videoViews     String?
-    createdAt      DateTime? @default(now())
-    updatedAt      DateTime? @updatedAt
-    like           like[]
-    link           link?     @relation(fields: [linkId], references: [linkId])
-    linkId         String?   @db.ObjectId
-    photo          image?    @relation(fields: [photoId], references: [imageId])
-    photoId        String?   @db.ObjectId
-}
-
-model like {
-    likeId    String   @id @default(auto()) @map("_id") @db.ObjectId
-    user      user     @relation(fields: [userId], references: [userId], onDelete: Cascade)
-    post      post?    @relation(fields: [postId], references: [postId], onDelete: Cascade)
-    userId    String   @db.ObjectId
-    postId    String?  @db.ObjectId
-    commentId String?  @db.ObjectId
-    createdAt DateTime @default(now())
-}
-
-model comment {
-    commentId String   @id @default(auto()) @map("_id") @db.ObjectId
-    comment   String
-    user      user     @relation(fields: [userId], references: [userId])
-    post      post?    @relation(fields: [postId], references: [postId])
-    postId    String?  @db.ObjectId
-    userId    String   @db.ObjectId
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-}
-
-model chat {
-    chatId      String    @id @default(auto()) @map("_id") @db.ObjectId
-    messagesIds String[]  @db.ObjectId
-    messages    message[]
-    userIds     String[]  @db.ObjectId
-    users       user[]    @relation(fields: [userIds], references: [userId])
-    createdAt   DateTime  @default(now())
-    updatedAt   DateTime  @updatedAt
-}
-
-model message {
-    messageId String   @id @default(auto()) @map("_id") @db.ObjectId
-    text      String?
-    photoUri  String?
-    photo     image?   @relation(fields: [photoId], references: [imageId])
-    photoId   String?  @db.ObjectId
-    chat      chat?    @relation(fields: [chatId], references: [chatId], onDelete: Cascade)
-    chatId    String?  @db.ObjectId
-    senderId  String   @db.ObjectId
-    sender    user     @relation(fields: [senderId], references: [userId], onDelete: Cascade)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-}
-
-model notification {
-    notificationId String           @id @default(auto()) @map("_id") @db.ObjectId
-    text           String
-    imageUri       String?
-    to             String?
-    type           NotificationType
-    notifUser      user?            @relation("NotificationUser", fields: [notifUserId], references: [userId])
-    notifUserId    String?          @db.ObjectId
-    remindDate     DateTime?
-    createdAt      DateTime         @default(now())
-    updatedAt      DateTime         @updatedAt
-    user           user?            @relation(fields: [userId], references: [userId])
-    userId         String?          @db.ObjectId
-}
-
-model link {
-    linkId      String  @id @default(auto()) @map("_id") @db.ObjectId
-    url         String
-    title       String?
-    imageUri    String?
-    imageHeight Int?
-    imageWidth  Int?
-
-    post post[]
-}
-
-model image {
-    imageId     String    @id @default(auto()) @map("_id") @db.ObjectId
-    imageUri    String?
-    imageHeight Int?
-    imageWidth  Int?
-    post        post[]
-    message     message[]
-}
-
-enum NotificationType {
-    Follow
-    Posts
-    Suggestions
-    Reminder
 }

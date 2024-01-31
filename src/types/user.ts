@@ -5,14 +5,8 @@ export interface UserPortfolio {
 	graduationYear: string;
 	degree: string;
 	major: string;
-	sports: Sports[];
-	clubs: Clubs[];
-}
-
-export interface Sports {
-	sportName: string;
-}
-
-export interface Clubs {
-	clubName: string;
+	gpa: number;
+	gradeLevel: string;
+	sports: string;
+	clubs: string;
 }
