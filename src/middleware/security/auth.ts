@@ -1,36 +1,40 @@
 import httpStatus from 'http-status';
-import config from '../../config/env';
-import { parseToken } from '../../lib/token';
+import { safe } from '../../lib/errors';
 import { Response, NextFunction } from 'express';
-import { sendResponse } from '../../util/response';
-import { RequestExtended } from '../../types/request';
+import { TypedRequest } from '../../types/request';
+import { CreateResponse } from '../../util/response';
+import { verifyToken, Token } from '../../lib/token';
 
 export default async function auth(
-	req: RequestExtended,
+	req: TypedRequest<{}, {}, {}>,
 	res: Response,
 	next: NextFunction
 ) {
+	let r = new CreateResponse(res);
 	const rawAuthToken = req.headers.authorization;
 	const authParts = rawAuthToken?.split(' ');
 
 	if (rawAuthToken === '')
-		return sendResponse(res, httpStatus.UNAUTHORIZED, 'Unauthorized');
+		return r.code(httpStatus.UNAUTHORIZED).msg('Unauthorized.').send();
 
 	if (!authParts || authParts.length !== 2)
-		return sendResponse(res, httpStatus.UNAUTHORIZED, 'Unauthorized');
+		return r.code(httpStatus.UNAUTHORIZED).msg('Unauthorized.').send();
 
 	if (authParts[0] !== 'Bearer')
-		return sendResponse(res, httpStatus.UNAUTHORIZED, 'Unauthorized');
+		return r.code(httpStatus.UNAUTHORIZED).msg('Unauthorized.').send();
 
-	try {
-		const authToken = parseToken(authParts[1], config.SECRET_KEY);
+	const verifiedToken = await safe(verifyToken(authParts[1]));
+	if (verifiedToken.error)
+		return r.code(httpStatus.UNAUTHORIZED).msg('Invalid token.').send();
 
-		req.user = {
-			userId: authToken.UUID
-		};
+	if (!verifiedToken.data)
+		return r.code(httpStatus.UNAUTHORIZED).msg('Unable to use token.').send();
 
-		next();
-	} catch (err: any) {
-		return sendResponse(res, httpStatus.UNAUTHORIZED, err.message);
-	}
+	const { userId } = verifiedToken.data as Token;
+
+	req.user = {
+		userId: userId
+	};
+
+	next();
 }

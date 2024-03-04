@@ -1,39 +1,28 @@
-import prisma from '../../lib/prisma';
+import { safe } from '../../lib/errors';
+import UserRepo from '../../repository/user';
 import { ServiceToController, serviceToController } from '../../util/response';
 
+export const getFollowersEvents = {
+	SUCCESS: 'SUCCESS',
+	CANT_GET_USER: 'CANT_GET_USER',
+	USER_NOT_FOUND: 'USER_NOT_FOUND', 
+}
+
 export default async function getFollowersService(
-	userId: string,
-	take: number,
-	skip: number
+	userId: string
 ): Promise<ServiceToController> {
-	try {
-		const followers = await prisma.user.findUnique({
-			where: { userId: userId },
-			select: {
-				followingIDs: true,
-				followers: {
-					select: {
-						userId: true,
-						name: true,
-						username: true,
-						avatar: true,
-						verified: true
-					},
-					take: Number(take),
-					skip: Number(skip)
-				}
-			}
-		});
+	const user = await safe(UserRepo.findUnqiueUser('userId', userId));
+	if (user.error) return serviceToController(getFollowersEvents.CANT_GET_USER);
+	if (!user.data) return serviceToController(getFollowersEvents.USER_NOT_FOUND);
 
-		if (!followers) return serviceToController('ERROR_GET_FOLLOWERS');
+	const usersWithFollowStatus = user.data.followers.map((u) => {
+		const isMutual = user.data.following.includes(u);
 
-		const usersWithFollowStatus = followers.followers.map((user) => {
-			const isFollowed = followers.followingIDs.includes(user.userId);
-			return { ...user, isFollowed };
-		});
+		return { 
+			followerId: u, 
+			mutual: isMutual 
+		};
+	});
 
-		return serviceToController('SUCCESS_GET_FOLLOWERS', usersWithFollowStatus);
-	} catch (e) {
-		return serviceToController('ERROR_GET_FOLLOWERS', e);
-	}
+	return serviceToController(getFollowersEvents.SUCCESS, usersWithFollowStatus);
 }

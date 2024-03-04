@@ -5,6 +5,7 @@ import RelationshipController from '../../../controllers/relationship';
 import {
 	followerFollowingValidator,
 	followValidator,
+	unfollowValidator,
 	searchValidator
 } from '../../../middleware/validation/rules';
 
@@ -17,7 +18,7 @@ relationshipRouter.post(
 	RelationshipController.follow
 );
 
-relationshipRouter.post('/unfollow', RelationshipController.unfollow);
+relationshipRouter.post('/unfollow', unfollowValidator, validate, RelationshipController.unfollow);
 
 relationshipRouter.get(
 	'/followers',
@@ -32,8 +33,6 @@ relationshipRouter.get(
 	validate,
 	RelationshipController.getFollowing
 );
-
-relationshipRouter.get('/random', RelationshipController.randomFollowers);
 
 relationshipRouter.get(
 	'/search',

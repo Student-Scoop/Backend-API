@@ -45,11 +45,13 @@ export const removeAvatarValidation = [
 ];
 
 export const loginValidation = [
-	body('username')
+	body('email')
 		.exists()
-		.withMessage('User Name field is required.')
+		.withMessage('Email is required.')
 		.isString()
-		.withMessage('Invalid user name'),
+		.withMessage('Invalid email address.')
+		.isEmail()
+		.withMessage('Invalid email address.'),
 	body('password')
 		.exists()
 		.withMessage('Password field is required.')
@@ -68,7 +70,11 @@ export const loginWithGoogleValidation = [
 ];
 
 export const followValidator = [
-	body('followId').isString().isMongoId().withMessage('Not valid Id')
+	body('followId').isString().isUUID(4).withMessage('Not valid Id')
+];
+
+export const unfollowValidator = [
+	body('unfollowId').isString().isUUID(4).withMessage('Not valid Id')
 ];
 
 export const searchValidator = [

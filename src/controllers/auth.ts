@@ -1,120 +1,117 @@
+import { Response } from 'express';
 import httpStatus from 'http-status';
-import { Request, Response } from 'express';
-import { sendResponse } from '../util/response';
-import { RequestExtended } from '../types/request';
+import { CreateResponse } from '../util/response';
+import { TypedRequest } from '../types/request';
 import {
 	loginService,
+	loginEvents,
+	signupService,
+	signupEvents,
 	googleLoginService,
-	signupService
+	googleLoginEvents
 } from '../services/auth';
 
 export default class AuthController {
-	static async login(req: Request, res: Response) {
-		const { username, password } = req.body;
+	static async login(
+		req: TypedRequest<{}, {}, { email: string; password: string }>,
+		res: Response
+	) {
+		const { email, password } = req.body;
+		const { event, data } = await loginService(email, password);
 
-		const { event, data } = await loginService(username, password);
+		let r = new CreateResponse(res);
+
+		console.log(event, data);
 
 		switch (event) {
-			case 'SUCCESS_LOGIN':
-				return sendResponse(res, httpStatus.OK, 'Login successful.', data);
-			case 'ERROR_LOGIN_INVALID_USERNAME':
-				return sendResponse(res, httpStatus.BAD_REQUEST, 'Invalid username.');
-			case 'ERROR_LOGIN_INVALID_PASSWORD':
-				return sendResponse(res, httpStatus.BAD_REQUEST, 'Invalid password.');
-			case 'ERROR_LOGIN':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error.'
-				);
+			case loginEvents.SUCCESS:
+				return r.code(httpStatus.OK).payload(data).send();
+			case loginEvents.COULD_NOT_GET_USER:
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Unable to get user.')
+					.send();
+			case loginEvents.USER_NOT_FOUND:
+				return r
+					.code(httpStatus.BAD_REQUEST)
+					.msg('Invalid login details.')
+					.send();
+			case loginEvents.INVALID_PASSWORD:
+				return r
+					.code(httpStatus.BAD_REQUEST)
+					.msg('Invalid login details.')
+					.send();
 			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error.'
-				);
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Internal server error.')
+					.send();
 		}
 	}
 
-	static async loginGoogle(req: RequestExtended, res: Response) {
+	static async loginGoogle(
+		req: TypedRequest<{}, {}, { token: string }>,
+		res: Response
+	) {
 		const { token } = req.body;
-
 		const { event, data } = await googleLoginService(token);
 
+		let r = new CreateResponse(res);
+
 		switch (event) {
-			case 'SUCCESS_GOOGLE_LOGIN':
-				return sendResponse(
-					res,
-					httpStatus.OK,
-					'Google login successful.',
-					data
-				);
-			case 'ERROR_GOOGLE_LOGIN_USER_NOT_FOUND':
-				return sendResponse(
-					res,
-					httpStatus.BAD_REQUEST,
-					'Google sign in not associated with any user.'
-				);
-			case 'ERROR_GOOGLE_LOGIN':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error.'
-				);
+			case googleLoginEvents.SUCCESS:
+				return r.code(httpStatus.OK).payload(data).send();
+			case googleLoginEvents.USER_NOT_FOUND:
+				return r.code(httpStatus.NOT_FOUND).msg('User not found.').send();
 			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error.'
-				);
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Internal server error.')
+					.send();
 		}
 	}
 
-	static async signup(req: Request, res: Response) {
-		const { name, email, password, username } = req.body;
-
+	static async signup(
+		req: TypedRequest<
+			{},
+			{},
+			{ name: string; email: string; username: string; password: string }
+		>,
+		res: Response
+	) {
+		const { name, email, username, password } = req.body;
 		const { event, data } = await signupService(
 			name,
 			email,
-			password,
-			username
+			username,
+			password
 		);
+
+		let r = new CreateResponse(res);
 
 		switch (event) {
-			case 'SUCCESS_SIGNUP':
-				return sendResponse(res, httpStatus.OK, 'Signup successful', data);
-			case 'ERROR_SIGNUP_EMAIL_ALREADY_EXISTS':
-				return sendResponse(res, httpStatus.SEE_OTHER, 'Email already exists.');
-			case 'ERROR_SIGNUP_USER_NOT_CREATED':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'User not created.'
-				);
-			case 'ERROR_SIGNUP_PORTFOLIO_NOT_SYNCED':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Portfolio not synced.'
-				);
-			case 'ERROR_SIGNUP':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error.'
-				);
+			case signupEvents.SUCCESS:
+				return r.code(httpStatus.CREATED).payload(data).send();
+			case signupEvents.EMAIL_ALREADY_EXISTS:
+				return r
+					.code(httpStatus.BAD_REQUEST)
+					.msg('Email already exists.')
+					.send();
+			case signupEvents.USER_NOT_CREATED:
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('User not created.')
+					.send();
+			case signupEvents.PORTFOLIO_NOT_SYNCED:
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Portfolio not synced.')
+					.send();
 			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error.'
-				);
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Internal server error.')
+					.send();
 		}
-	}
-
-	static async logout(req: Request, res: Response) {
-		req.session.destroy(() =>
-			sendResponse(res, httpStatus.NO_CONTENT, 'Logout successful')
-		);
 	}
 }

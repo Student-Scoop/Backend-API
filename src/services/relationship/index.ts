@@ -1,15 +1,18 @@
-import followService from './follow';
-import unfollowService from './unfollow';
-import getFollowersService from './getFollowers';
-import getFollowingService from './getFollowing';
-import randomFollowersService from './randomFollowers';
-import searchUserService from './searchUsers';
+import followService, { followEvents } from './follow';
+import unfollowService, { unfollowEvents } from './unfollow';
+import getFollowersService, { getFollowersEvents } from './getFollowers';
+import getFollowingService, { getFollowingEvents } from './getFollowing';
+import searchUserService, { searchUserEvents } from './searchUsers';
 
 export {
 	followService,
+	followEvents,
 	unfollowService,
+	unfollowEvents,
 	getFollowersService,
+	getFollowersEvents,
 	getFollowingService,
-	randomFollowersService,
-	searchUserService
+	getFollowingEvents,
+	searchUserService,
+	searchUserEvents
 };

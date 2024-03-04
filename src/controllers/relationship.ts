@@ -1,177 +1,174 @@
 import { Response } from 'express';
 import httpStatus from 'http-status';
-import { sendResponse } from '../util/response';
-import { RequestExtended } from '../types/request';
+import { TypedRequest } from '../types/request';
+import { CreateResponse } from '../util/response';
 
 import {
 	followService,
+	followEvents,
 	unfollowService,
+	unfollowEvents,
 	getFollowersService,
+	getFollowersEvents,
 	getFollowingService,
-	randomFollowersService,
-	searchUserService
+	getFollowingEvents,
+	searchUserService,
+	searchUserEvents
 } from '../services/relationship';
 
 export default class RelationshipController {
-	static async follow(req: RequestExtended, res: Response) {
+	static async follow(
+		req: TypedRequest<{}, {}, { followId: string }>,
+		res: Response
+	) {
 		const { userId } = req.user;
 		const { followId } = req.body;
 
 		const { event, data } = await followService(userId, followId);
 
+		console.log(event, data)
+
+		let r = new CreateResponse(res);
+
 		switch (event) {
-			case 'SUCCESS_FOLLOW':
-				return sendResponse(res, httpStatus.OK, '', data);
-			case 'SUCCESS_UNFOLLOW':
-				return sendResponse(res, httpStatus.OK, '', data);
-			case 'ERROR_FOLLOW_SELF':
-				return sendResponse(
-					res,
-					httpStatus.BAD_REQUEST,
-					'You cannot follow yourself'
-				);
-			case 'ERROR_FOLLOW_FOLLOWED_NO_NOTIFCATION_ID':
-				return sendResponse(
-					res,
-					httpStatus.FAILED_DEPENDENCY,
-					'User followed, unable to push notification'
-				);
-			case 'ERROR_FOLLOW':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error'
-				);
+			case followEvents.SUCCESS:
+				return r.code(httpStatus.OK).payload(data).send();
+			case followEvents.FOLLOW_SELF:
+				return r
+					.code(httpStatus.BAD_REQUEST)
+					.msg('Cannot follow yourself.')
+					.send();
+			case followEvents.CANT_FOLLOW_USER:
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Could not follow user.')
+					.send();
+			case followEvents.USER_ALREADY_FOLLOWED:
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('User already followed.')
+					.send();
+			case followEvents.CANT_GET_USER:
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Cant get user.')
+					.send();
+			case followEvents.USER_NOT_FOUND:
+				return r
+					.code(httpStatus.NOT_FOUND)
+					.msg('User not found.')
+					.send();
 			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error'
-				);
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Unexpected server error.')
+					.send();
 		}
 	}
 
-	static async unfollow(req: RequestExtended, res: Response) {
+	static async unfollow(
+		req: TypedRequest<{}, {}, { unfollowId: string }>,
+		res: Response
+	) {
 		const { userId } = req.user;
-		const { unfollowId } = req.query;
+		const { unfollowId } = req.body;
 
-		const { event, data } = await unfollowService(userId, unfollowId as string);
+		const { event, data } = await unfollowService(userId, unfollowId);
+
+		let r = new CreateResponse(res);
 
 		switch (event) {
-			case 'SUCCESS_UNFOLLOW':
-				return sendResponse(res, httpStatus.OK, 'Success', data);
-			case 'ERROR_UNFOLLOW':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error'
-				);
+			case unfollowEvents.SUCCESS:
+				return r.code(httpStatus.OK).payload(data).send();
+			case unfollowEvents.COULD_NOT_UNFOLLOW_USER:
+				return r.code(httpStatus.INTERNAL_SERVER_ERROR).msg('Could not unfollow user.').send();
+			case unfollowEvents.CANT_GET_USER:
+				return r.code(httpStatus.INTERNAL_SERVER_ERROR).msg('Cant get user.').send();
+			case unfollowEvents.USER_NOT_FOUND:
+				return r.code(httpStatus.NOT_FOUND).msg('User not found.').send();
 			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error'
-				);
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Unexpected server error.')
+					.send();
 		}
 	}
 
-	static async getFollowers(req: RequestExtended, res: Response) {
+	static async getFollowers(req: TypedRequest<{}, {}, {}>, res: Response) {
 		const { userId } = req.user;
-		const take = Number(req.query.take) || 10;
-		const skip = Number(req.query.skip) || 0;
+		const { event, data } = await getFollowersService(userId);
 
-		const { event, data } = await getFollowersService(userId, take, skip);
+		let r = new CreateResponse(res);
 
 		switch (event) {
-			case 'SUCCESS_GET_FOLLOWERS':
-				return sendResponse(res, httpStatus.OK, 'Success', data);
-			case 'ERROR_GET_FOLLOWERS':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error'
-				);
+			case getFollowersEvents.SUCCESS:
+				return r.code(httpStatus.OK).payload(data).send();
+			case getFollowersEvents.CANT_GET_USER:
+				return r.code(httpStatus.INTERNAL_SERVER_ERROR).msg('Cant get user.').send();
+			case getFollowersEvents.USER_NOT_FOUND:
+				return r.code(httpStatus.NOT_FOUND).msg('User not found.').send();
 			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error'
-				);
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Unexpected server error.')
+					.send();
 		}
 	}
 
-	static async getFollowing(req: RequestExtended, res: Response) {
+	static async getFollowing(req: TypedRequest<{}, {}, {}>, res: Response) {
 		const { userId } = req.user;
-		const take = Number(req.query.take) || 10;
-		const skip = Number(req.query.skip) || 0;
+		const { event, data } = await getFollowingService(userId);
 
-		const { event, data } = await getFollowingService(userId, take, skip);
+		let r = new CreateResponse(res);
 
 		switch (event) {
-			case 'SUCCESS_GET_FOLLOWING':
-				return sendResponse(res, httpStatus.OK, 'Success', data);
-			case 'ERROR_GET_FOLLOWING':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error'
-				);
+			case getFollowingEvents.SUCCESS:
+				return r.code(httpStatus.OK).payload(data).send();
+			case getFollowingEvents.CANT_GET_USER:
+				return r.code(httpStatus.INTERNAL_SERVER_ERROR).msg('Cant get user.').send();
+			case getFollowersEvents.USER_NOT_FOUND:
+				return r.code(httpStatus.NOT_FOUND).msg('User not found.').send();
 			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error'
-				);
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Unexpected server error.')
+					.send();
 		}
 	}
 
-	static async randomFollowers(req: RequestExtended, res: Response) {
-		const { userId } = req.user;
-
-		const { event, data } = await randomFollowersService(userId);
-
-		switch (event) {
-			case 'SUCCESS_RANDOM_FOLLOWERS':
-				return sendResponse(res, httpStatus.OK, 'Success', data);
-			case 'ERROR_RANDOM_FOLLOWERS':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error'
-				);
-			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error'
-				);
-		}
-	}
-
-	static async searchUser(req: RequestExtended, res: Response) {
+	static async searchUser(
+		req: TypedRequest<{ query: string }, {}, {}>,
+		res: Response
+	) {
 		const { userId } = req.user;
 		const { query } = req.query;
 
-		if ((query as string).trim() === '')
-			return sendResponse(res, httpStatus.BAD_REQUEST, 'Invalid query');
+		let r = new CreateResponse(res);
 
-		const { event, data } = await searchUserService(userId, query as string);
+		if (query.trim() === '')
+			return r
+				.code(httpStatus.BAD_REQUEST)
+				.msg('Query cannot be empty.')
+				.send();
+
+		const { event, data } = await searchUserService(userId, query);
 
 		switch (event) {
-			case 'SUCCESS_USER_SEARCH':
-				return sendResponse(res, httpStatus.OK, 'Success', data);
-			case 'ERROR_USER_SEARCH':
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Internal server error'
-				);
+			case searchUserEvents.SUCCESS:
+				return r.code(httpStatus.OK).payload(data).send();
+			case searchUserEvents.NO_RESULTS:
+				return r.code(httpStatus.NOT_FOUND).msg('No results found.').send();
+			case searchUserEvents.CANT_SEARCH:
+				return r.code(httpStatus.INTERNAL_SERVER_ERROR).msg('Unable to search.').send();
+			case getFollowingEvents.CANT_GET_USER:
+				return r.code(httpStatus.INTERNAL_SERVER_ERROR).msg('Cant get user.').send();
+			case getFollowersEvents.USER_NOT_FOUND:
+				return r.code(httpStatus.NOT_FOUND).msg('User not found.').send();
 			default:
-				return sendResponse(
-					res,
-					httpStatus.INTERNAL_SERVER_ERROR,
-					'Unexpected server error'
-				);
+				return r
+					.code(httpStatus.INTERNAL_SERVER_ERROR)
+					.msg('Unexpected server error.')
+					.send();
 		}
 	}
 }

@@ -3,53 +3,41 @@ import CustomError from './custom';
 
 export type Safe<T> =
 	| {
-			success: true;
 			data: T;
+			error: string | null;
 	  }
 	| {
-			success: false;
-			error: string;
+			data: null;
+			error: string | null;
 	  };
 
-export function safe<T>(promise: Promise<T>, err?: string): Promise<Safe<T>>;
-
-export function safe<T>(func: () => T, err?: string): Safe<T>;
-
 export function safe<T>(
-	promiseOrFunc: Promise<T> | (() => T),
-	err?: string
+	promiseOrFunc: Promise<T> | (() => T)
 ): Promise<Safe<T>> | Safe<T> {
-	if (promiseOrFunc instanceof Promise) return safeAsync(promiseOrFunc, err);
+	if (promiseOrFunc instanceof Promise) return safeAsync(promiseOrFunc);
 
-	return safeSync(promiseOrFunc, err);
+	return safeSync(promiseOrFunc);
 }
 
-async function safeAsync<T>(
-	promise: Promise<T>,
-	err?: string
-): Promise<Safe<T>> {
+async function safeAsync<T>(promise: Promise<T>): Promise<Safe<T>> {
 	try {
 		const data = await promise;
-		return { data, success: true };
+		return { data, error: null };
 	} catch (e) {
-		if (err !== undefined) return { success: false, error: err };
+		if (e instanceof Error) return { data: null, error: e.message };
 
-		if (e instanceof Error) return { success: false, error: e.message };
-
-		return { success: false, error: 'Something went wrong' };
+		return { data: null, error: 'Something went wrong' };
 	}
 }
 
-function safeSync<T>(func: () => T, err?: string): Safe<T> {
+function safeSync<T>(func: () => T): Safe<T> {
 	try {
 		const data = func();
-		return { data, success: true };
+		return { data, error: null };
 	} catch (e) {
-		if (err !== undefined) return { success: false, error: err };
+		if (e instanceof Error) return { data: null, error: e.message };
 
-		if (e instanceof Error) return { success: false, error: e.message };
-
-		return { success: false, error: 'Something went wrong' };
+		return { data: null, error: 'Something went wrong' };
 	}
 }
 

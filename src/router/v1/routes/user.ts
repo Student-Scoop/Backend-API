@@ -11,16 +11,17 @@ import {
 const userRouter = Router();
 
 userRouter.get('/:id', UserController.getUser);
+userRouter.get('/:id/portfolio', UserController.getPortfolio);
 
 userRouter.put(
-	'/update-data',
+	'/settings',
 	updateDataValidator,
 	validate,
 	UserController.changeData
 );
 
 userRouter.post(
-	'/update-avatar',
+	'/avatar',
 	upload(['image/jpeg', 'image/png', 'image/jpg'], 10).single('image'),
 	UserController.updateAvatar
 );

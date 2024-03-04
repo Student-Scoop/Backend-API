@@ -1,68 +1,60 @@
 import bcrypt from 'bcrypt';
-import prisma from '../../lib/prisma';
+import { v4 as uuidv4 } from 'uuid';
+import { safe } from '../../lib/errors';
+import UserRepo from '../../repository/user';
+import { createToken } from '../../lib/token';
 import { serviceToController, ServiceToController } from '../../util/response';
+
+export const signupEvents = {
+	SUCCESS: 'SUCCESS',
+	EMAIL_ALREADY_EXISTS: 'EMAIL_ALREADY_EXISTS',
+	USER_NOT_CREATED: 'USER_NOT_CREATED',
+	PORTFOLIO_NOT_SYNCED: 'PORTFOLIO_NOT_SYNCED',
+	COULD_NOT_GENERATE_TOKEN: 'COULD_NOT_GENERATE_TOKEN'
+};
 
 export default async function signupService(
 	name: string,
 	email: string,
-	password: string,
-	username: string
+	username: string,
+	password: string
 ): Promise<ServiceToController> {
 	const formattedUsername = username.toLowerCase();
 
-	try {
-		if (await prisma.user.findUnique({ where: { email: email } }))
-			return serviceToController('ERROR_SIGNUP_EMAIL_ALREADY_EXISTS');
+	const findUserByEmail = await safe(UserRepo.findUnqiueUser('email', email));
 
-		const user = await prisma.user.create({
-			data: {
-				name: name,
-				email: email,
-				username: formattedUsername,
-				password: await bcrypt.hash(password, 10)
-			}
-		});
+	if (findUserByEmail.data)
+		return serviceToController(signupEvents.EMAIL_ALREADY_EXISTS);
 
-		const userPortfolio = await prisma.portfolio.create({
-			data: {
-				userId: user.userId,
-				schoolName: '',
-				schoolLocation: '',
-				graduationYear: '',
-				degree: '',
-				major: '',
-				gpa: 0,
-				gradeLevel: 0,
-				sports: '',
-				clubs: ''
-			}
-		});
+	// TODO: Change to custom snowflake ID system
+	const userId = uuidv4();
+	const hashedPassword = await bcrypt.hash(password, 10);
 
-		if (!user || !userPortfolio)
-			return serviceToController('ERROR_SIGNUP_USER_NOT_CREATED');
+	const createdUser = await safe(
+		UserRepo.createUser(userId, name, email, formattedUsername, hashedPassword)
+	);
 
-		const syncPortfolio = await prisma.user.update({
-			where: { userId: user.userId },
-			data: { portfolioId: userPortfolio.portfolioId }
-		});
+	if (createdUser.error || !createdUser.data)
+		return serviceToController(signupEvents.USER_NOT_CREATED);
 
-		if (!syncPortfolio)
-			return serviceToController('ERROR_SIGNUP_PORTFOLIO_NOT_SYNCED');
+	const token = await safe(
+		createToken(createdUser.data.userId, createdUser.data.email)
+	);
+	if (token.error)
+		return serviceToController(signupEvents.COULD_NOT_GENERATE_TOKEN);
 
-		return serviceToController('SUCCESS_SIGNUP', {
-			userId: user.userId,
-			email: user.email,
-			username: user.username,
-			name: user.name,
-			imageUri: user.avatar,
-			emailIsVerified: user.emailIsVerified,
-			verified: user.verified,
-			followersCount: user.followersIDs?.length.toString(),
-			followingCount: user.followingIDs?.length.toString(),
-			createdAt: user.createdAt,
-			updatedAt: user.updatedAt
-		});
-	} catch (e: any) {
-		return serviceToController('ERROR_SIGNUP', e);
-	}
+	return serviceToController(signupEvents.SUCCESS, {
+		userId: createdUser.data.userId,
+		email: createdUser.data.email,
+		username: createdUser.data.username,
+		name: createdUser.data.name,
+		imageUri: createdUser.data.avatar,
+		emailIsVerified: createdUser.data.emailIsVerified,
+		verified: createdUser.data.verified,
+		followers: createdUser.data.followers?.length.toString() || '0',
+		following: createdUser.data.followers?.length.toString() || '0',
+		createdAt: createdUser.data.createdAt,
+		updatedAt: createdUser.data.updatedAt,
+		token: token.data.trim()
+	});
 }

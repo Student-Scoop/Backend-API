@@ -1,8 +1,9 @@
 # Dependencies
-*/node_modules/
+node_modules/
 
 # Temporary
-*/tmp/
+tmp/
+migrations/
 
 # Env & config files
 *.env

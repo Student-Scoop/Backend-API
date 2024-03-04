@@ -19,6 +19,5 @@ authRouter.post(
 );
 
 authRouter.post('/signup', registerValidation, validate, AuthController.signup);
-authRouter.post('/logout', AuthController.logout);
 
 export default authRouter;

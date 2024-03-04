@@ -1,53 +1,41 @@
-import prisma from '../../lib/prisma';
+import { safe } from '../../lib/errors';
+import UserRepo from '../../repository/user';
 import { ServiceToController, serviceToController } from '../../util/response';
+
+export const searchUserEvents = {
+	SUCCESS: 'SUCCESS',
+	NO_RESULTS: 'NO_RESULTS',
+	CANT_SEARCH: 'CANT_SEARCH',
+	CANT_GET_USER: 'CANT_GET_USER',
+	USER_NOT_FOUND: 'USER_NOT_FOUND'
+}
 
 export default async function searchUserService(
 	userId: string,
 	query: string
 ): Promise<ServiceToController> {
-	try {
-		const people = await prisma.user.findMany({
-			where: {
-				OR: [
-					{ username: { contains: query?.toString(), mode: 'insensitive' } },
-					{ name: { contains: query?.toString(), mode: 'insensitive' } }
-				]
-			},
-			select: {
-				name: true,
-				username: true,
-				userId: true,
-				avatar: true
-			},
-			orderBy: { userId: 'desc' },
-			take: 15
-		});
+	const users = await safe(UserRepo.searchUsers(query.toString(), 15));
+	if (users.error) return serviceToController(searchUserEvents.CANT_SEARCH);
 
-		const loggedInUser = await prisma.user.findUnique({
-			where: { userId: userId },
-			select: { followingIDs: true }
-		});
+	if (!users.data || users.data.length === 0) return serviceToController(searchUserEvents.NO_RESULTS);
 
-		let updatedUsers: Array<{
-			userId: string;
-			username: string;
-			isFollowed: boolean;
-			avatar: string | null;
-		}> = [];
+	const user = await safe(UserRepo.findUnqiueUser('userId', userId));
+	if (user.error) return serviceToController(searchUserEvents.CANT_GET_USER)
+	if (!user.data) return serviceToController(searchUserEvents.USER_NOT_FOUND);
 
-		if (loggedInUser) {
-			const usersWithFollowStatus = people.map((user) => {
-				const isFollowed = loggedInUser.followingIDs.includes(user.userId);
-				return { ...user, isFollowed };
-			});
+	let updatedUsers: Array<{
+		userId: string;
+		username: string;
+		isFollowed: boolean;
+		avatar: string | null;
+	}> = [];
 
-			updatedUsers = usersWithFollowStatus;
-		}
+	const searchedUsersWithFollowStatus = users.data.map((u) => {
+		const isFollowed = user.data.following.includes(u.userId);
+		return { ...u, isFollowed };
+	});
 
-		if (!people) return serviceToController('ERROR_USER_SEARCH_NOT_FOUND');
+	updatedUsers = searchedUsersWithFollowStatus;
 
-		return serviceToController('SUCCESS_USER_SEARCH', updatedUsers);
-	} catch (e: any) {
-		return serviceToController('ERROR_USER_SEARCH', e);
-	}
+	return serviceToController(searchUserEvents.SUCCESS, updatedUsers);
 }

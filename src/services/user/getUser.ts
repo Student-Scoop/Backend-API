@@ -1,45 +1,40 @@
-import prisma from '../../lib/prisma';
+import { safe } from '../../lib/errors';
+import UserRepo from '../../repository/user';
 import { ServiceToController, serviceToController } from '../../util/response';
+
+export const getUserEvents = {
+	SUCCESS: 'SUCCESS',
+	USER_NOT_FOUND: 'USER_NOT_FOUND',
+	COULD_NOT_GET_USER: 'COULD_NOT_GET_USER'
+};
 
 export default async function getUserService(
 	userId: string
 ): Promise<ServiceToController> {
-	try {
-		const user = await prisma.user.findUnique({
-			where: { userId: userId },
-			select: {
-				userId: true,
-				name: true,
-				username: true,
-				email: true,
-				verified: true,
-				emailIsVerified: true,
-				avatar: true,
-				portfolio: true,
-				createdAt: true,
-				updatedAt: true,
-				followersIDs: true,
-				followingIDs: true
-			}
-		});
+	const user = await safe(UserRepo.findUnqiueUser('userId', userId));
 
-		if (!user) return serviceToController('ERROR_GET_USER_USER_NOT_FOUND');
+	if (user.error) return serviceToController(getUserEvents.COULD_NOT_GET_USER);
 
-		return serviceToController('SUCCESS_GET_USER', {
-			userId: user.userId,
-			email: user.email,
-			username: user.username,
-			avatar: user.avatar,
-			emailIsVerified: user.emailIsVerified,
-			verified: user.verified,
-			name: user.name,
-			followersCount: user.followersIDs?.length.toString(),
-			followingCount: user.followingIDs?.length.toString(),
-			portfolio: user.portfolio,
-			createdAt: user.createdAt,
-			updatedAt: user.updatedAt
-		});
-	} catch (e: any) {
-		return serviceToController('ERROR_GET_USER', e);
-	}
+	if (!user.data) return serviceToController(getUserEvents.USER_NOT_FOUND);
+
+	return serviceToController(getUserEvents.SUCCESS, {
+		userId: user.data.userId,
+		email: user.data.email,
+		username: user.data.username,
+		avatar: user.data.avatar,
+		emailIsVerified: user.data.emailIsVerified,
+		verified: user.data.verified,
+		name: user.data.name,
+		school: user.data.school,
+		schoolLocation: user.data.schoolLocation,
+		graduationYear: user.data.graduationYear,
+		degree: user.data.degree,
+		major: user.data.major,
+		sports: user.data.sports,
+		clubs: user.data.clubs,
+		followersCount: user.data.followers.length,
+		followingCount: user.data.following.length,
+		createdAt: user.data.createdAt,
+		updatedAt: user.data.updatedAt
+	});
 }

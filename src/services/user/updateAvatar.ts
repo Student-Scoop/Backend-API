@@ -1,36 +1,40 @@
-import prisma from '../../lib/prisma';
+import { safe } from '../../lib/errors';
+import UserRepo from '../../repository/user';
 import { uploadStream } from '../../lib/cloudinary';
 import { ServiceToController, serviceToController } from '../../util/response';
+
+export const updateAvatarEvents = {
+	SUCCESS: 'SUCCESS',
+	COULD_NOT_UPDATE_AVATAR: 'COULD_NOT_UPDATE_AVATAR'
+};
 
 export default async function updateAvatarService(
 	userId: string,
 	image: any | null
 ): Promise<ServiceToController> {
-	try {
-		if (!image) {
-			const updatePhoto = await prisma.user.update({
-				where: { userId: userId },
-				data: { avatar: '' }
-			});
+	if (!image) {
+		const updateAvatarRemoved = await safe(
+			UserRepo.updateUser(userId, { avatar: '' })
+		);
 
-			if (!updatePhoto) return serviceToController('ERROR_UPDATE_AVATAR');
+		if (updateAvatarRemoved.error)
+			return serviceToController(updateAvatarEvents.COULD_NOT_UPDATE_AVATAR);
 
-			return serviceToController('SUCCESS_UPDATE_AVATAR', { avatarURL: '' });
-		}
-
-		const profileImage = await uploadStream('profile_pictures', image);
-
-		const updatePhoto = await prisma.user.update({
-			where: { userId: userId },
-			data: { avatar: profileImage['secure_url'] }
+		return serviceToController(updateAvatarEvents.SUCCESS, {
+			avatarURL: ''
 		});
-
-		if (!updatePhoto) return serviceToController('ERROR_UPDATE_AVATAR');
-
-		return serviceToController('SUCCESS_UPDATE_AVATAR', {
-			avatar: profileImage['secure_url']
-		});
-	} catch (e: any) {
-		return serviceToController('ERROR_UPDATE_AVATAR', e);
 	}
+
+	const profileImage = await uploadStream('profile_pictures', image);
+
+	const updateAvatar = await safe(
+		UserRepo.updateUser(userId, { avatar: profileImage['secure_url'] })
+	);
+
+	if (updateAvatar.error)
+		return serviceToController(updateAvatarEvents.COULD_NOT_UPDATE_AVATAR);
+
+	return serviceToController(updateAvatarEvents.SUCCESS, {
+		avatar: profileImage['secure_url']
+	});
 }
